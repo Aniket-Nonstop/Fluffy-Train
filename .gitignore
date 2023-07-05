@@ -1,0 +1,5 @@
+venv
+db.sqlite3
+fluffy_train/__pycache__
+post/__pycache__
+post/migrations
