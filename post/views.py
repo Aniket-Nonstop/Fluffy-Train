@@ -12,8 +12,14 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework import status
 
-from post.serializer import PostSerializer, UserSerializer, ChangePasswordSerializer, ResetPasswordSerializer# UserUpdateSerializer
+from post.serializer import (
+    PostSerializer,
+    UserSerializer,
+    ChangePasswordSerializer,
+    ResetPasswordSerializer,
+)
 from post.models import Post
+
 # Create your views here.
 
 class PostViewset(viewsets.ModelViewSet):
@@ -23,7 +29,7 @@ class PostViewset(viewsets.ModelViewSet):
     # def list(self, request, *args, **kwargs):
     #     queryset = self.filter_queryset(self.get_queryset())
     #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(serializer.data)
+    #     return Response(serializer.data)    
     
     # def create(self, request):
     #     data = request.data
@@ -70,18 +76,16 @@ class LoginView(APIView):
         username = request.data["username"]
         password = request.data["password"]
 
-        user = authenticate(username=username, password = password)
+        user = authenticate(username=username, password=password)
         if user:
             login(request, user)
             return JsonResponse(
-                {
-                    "message": "Login successful"
-                },status=status.HTTP_200_OK,
+                {"message": "Login successful"},
+                status=status.HTTP_200_OK,
             )
         return JsonResponse(
-                {
-                    "message": "Invalid Credentials"
-                },status=status.HTTP_401_UNAUTHORIZED
+                {"message": "Invalid Credentials"},
+                status=status.HTTP_401_UNAUTHORIZED
             )
 
 class RegisterView(APIView):
@@ -92,28 +96,27 @@ class RegisterView(APIView):
             user.set_password(request.data.get('password'))
             user.save()
             return JsonResponse(
-                {
-                    "message": "Registration successful"
-                },status=status.HTTP_201_CREATED,
+                {"message": "Registration successful"},
+                status=status.HTTP_201_CREATED,
             )
         return JsonResponse(
-                {
-                    "message": "Invalid Credentials"
-                },serializer.errors,status=status.HTTP_400_BAD_REQUEST
+                {"message": "Invalid Credentials"},
+                serializer.errors,status=status.HTTP_400_BAD_REQUEST
             )
 
 class RegisterAPIView(APIView):
     def put(self, request, pk):
-
         user = User.objects.get(id=pk)
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(
-                    serializer.data,status=status.HTTP_200_OK,
+                    serializer.data,
+                    status=status.HTTP_200_OK,
                 )
         return JsonResponse(
-                serializer.errors,status=status.HTTP_400_BAD_REQUEST
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 class ResetPasswordView(UpdateAPIView):
@@ -131,15 +134,13 @@ class ResetPasswordView(UpdateAPIView):
             reset_url = f"localhost:8000{reset_url}"
 
             return Response(
-                {
-                    "message":f"Your Password reset link: {reset_url}"
-                }, status =status.HTTP_200_OK
+                {"message": f"Your Password reset link: {reset_url}"},
+                status =status.HTTP_200_OK
             )
         else:
             return Response(
-                {
-                    "message":"User Does Not Exists"
-                }, status=status.HTTP_400_BAD_REQUEST
+                {"message": "User Does Not Exists"},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -150,9 +151,7 @@ class PasswordReset(generics.GenericAPIView):
         serializser = self.serializer_class(data=request.data, context={"kwargs":kwargs})
         serializser.is_valid(raise_exception=True)
         return Response(
-            {
-                "Message":"password Reset Successful"
-            },status=status.HTTP_200_OK,
+            {"Message": "password Reset Successful"},
+            status=status.HTTP_200_OK,
         )
-
-
+    
