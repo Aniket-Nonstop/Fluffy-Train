@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "post",
     'rest_framework',
+    'django_rest_passwordreset',
 ]
 
 MIDDLEWARE = [
@@ -105,6 +106,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ]
 }
 
 # Internationalization
@@ -128,3 +132,12 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_PORT = 25
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'aniket.patil@nonstopio.com'
+EMAIL_HOST_PASSWORD = 'your_gmail_password'
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

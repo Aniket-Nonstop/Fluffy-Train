@@ -1,13 +1,19 @@
 from django.http import JsonResponse
+from django.urls import reverse
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
+from django.utils.encoding import smart_str, force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from rest_framework.generics import UpdateAPIView
 from rest_framework.views import APIView
+from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework import status
-from rest_framework.decorators import action
-from post.serializer import PostSerializer, UserSerializer
+
+from post.serializer import PostSerializer, UserSerializer, ChangePasswordSerializer, ResetPasswordSerializer# UserUpdateSerializer
 from post.models import Post
-from django.contrib.auth import authenticate, login
 # Create your views here.
 
 class PostViewset(viewsets.ModelViewSet):
@@ -58,6 +64,7 @@ class PostViewset(viewsets.ModelViewSet):
     #     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+
 class LoginView(APIView):
     def post(self, request):
         username = request.data["username"]
@@ -96,24 +103,12 @@ class RegisterView(APIView):
             )
 
 class RegisterAPIView(APIView):
-    def put(self, request, pk, format=None):
-        # data = request.data
-
-        # username = data["username"]
-        # email = data["email"]
-        # first_name = data["first_name"]
-        # last_name = data["last_name"]
+    def put(self, request, pk):
 
         user = User.objects.get(id=pk)
-        serializer = UserSerializer(user, data=request.data)
+        serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-        # if user.exists():
-        #     user.username = username
-        #     user.email = email
-        #     user.first_name = first_name
-        #     user.last_name = last_name
-        #     user.save()
             return JsonResponse(
                     serializer.data,status=status.HTTP_200_OK,
                 )
@@ -121,18 +116,43 @@ class RegisterAPIView(APIView):
                 serializer.errors,status=status.HTTP_400_BAD_REQUEST
             )
 
+class ResetPasswordView(UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+   
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.data["email"]
+        user = User.objects.filter(email=email).first()
+        if user:
+            encoded_pk = urlsafe_base64_encode(force_bytes(user.pk))
+            token = PasswordResetTokenGenerator().make_token(user)
+            reset_url = reverse("reset-password",kwargs={"encoded_pk":encoded_pk, "token":token})
+            reset_url = f"localhost:8000{reset_url}"
+
+            return Response(
+                {
+                    "message":f"Your Password reset link: {reset_url}"
+                }, status =status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {
+                    "message":"User Does Not Exists"
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
-    
+class PasswordReset(generics.GenericAPIView):
+    serializer_class = ResetPasswordSerializer
 
-    
-# class PostCreateView(APIView):
-#     def post(self, request):
-#         serializer = UserSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save(user=request.user)
-#             return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
-#         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    def patch(self, request, *args, **kwargs):
+        serializser = self.serializer_class(data=request.data, context={"kwargs":kwargs})
+        serializser.is_valid(raise_exception=True)
+        return Response(
+            {
+                "Message":"password Reset Successful"
+            },status=status.HTTP_200_OK,
+        )
 
 
